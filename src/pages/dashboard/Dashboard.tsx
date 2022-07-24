@@ -1,17 +1,41 @@
-import { Link } from "react-router-dom"
-import { useUsuarioLogado } from "../../shared/hooks"
-
+import React, { useCallback, useState } from "react"
 
 export const Dashboard = () => {
-  const {nomeDoUsuario} = useUsuarioLogado()
+  const [lista, setLista] = useState<string[]>(['Teste1','Teste2','Teste3',]);
+
+  const handleInputeKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback((e) => {
+    if(e.key === "Enter") {
+      if(e.currentTarget.value.trim().length === 0) return;
+
+      const value = e.currentTarget.value
+
+      e.currentTarget.value = '';
+
+      setLista((oldList) => {
+        if (oldList.includes(value)) return oldList;
+
+        return[...oldList, value]
+      });
+    }
+  },[])
+  
 
   return (
     <div>
-      <p>Dashboard</p>
+      <p>Lista</p>
 
-      <p>{nomeDoUsuario}</p>
+      <input 
+        onKeyDown={handleInputeKeyDown}
+      />
 
-      <Link to='/entrar'>Login</Link>
+    <ul>
+      {lista.map((value, index) => {
+       return(
+        <li key={index}>{value}</li>
+       ) 
+      })}
+    </ul>
+
     </div>
   )
 }
