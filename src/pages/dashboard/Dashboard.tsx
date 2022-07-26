@@ -2,8 +2,12 @@ import React, { useCallback, useEffect, useState } from "react"
 import { ApiException } from "../../shared/services/api/ApiException";
 import { ITarefa, TarefasService } from "../../shared/services/api/tarefas/TarefasService";
 
+// Dashboard Component
+
 export const Dashboard = () => {
   const [lista, setLista] = useState<ITarefa[]>([]);
+
+  // Getting all the list
 
   useEffect(() => {
     TarefasService.getAll()
@@ -15,6 +19,8 @@ export const Dashboard = () => {
         }
       });
   }, []);
+
+  // Creating a new 'Tarefa'
 
   const handleInputKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback((e) => {
     if (e.key === 'Enter') {
@@ -37,6 +43,30 @@ export const Dashboard = () => {
     }
   }, [lista]);
 
+  const handleTogleComplete = useCallback((id: number) => {
+    const tarefasUpdate = lista.find((tarefa) => tarefa.id === id);
+    if (!tarefasUpdate) return;
+
+    TarefasService.updateById(id,{
+      ...tarefasUpdate,
+      isCompleted: !tarefasUpdate.isCompleted,
+    })
+    .then((result) => {
+      if (result instanceof ApiException) {
+        alert(result.message);
+      } else {
+        setLista(oldLista => {
+          return oldLista.map(oldListItem => {
+            if (oldListItem.id === id) return result;
+            return oldListItem;
+          });
+        })        
+      }
+    })
+
+
+  }, [lista])
+
   return (
     <div>
       <p>Lista</p>
@@ -47,22 +77,12 @@ export const Dashboard = () => {
       <p>{lista.filter((listItem) => listItem.isCompleted).length}</p>
 
       <ul>
-        {lista.map((listItem, index) => {
+        {lista.map((listItem) => {
           return (
             <li key={listItem.id}>
               <input type='checkbox'
                 checked={listItem.isCompleted}
-                onChange={() => {
-                  setLista(oldLista => {
-                    return oldLista.map(oldListItem => {
-                      const newIsCompleted = oldListItem.title === listItem.title ? !oldListItem.isCompleted : oldListItem.title;
-                      return {
-                        ...oldListItem,
-                        isSelected: newIsCompleted
-                      }
-                    });
-                  })
-                }}
+                onChange={() => handleTogleComplete(listItem.id)}
               />
               {listItem.title}
             </li>
