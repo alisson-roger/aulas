@@ -1,13 +1,22 @@
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 
-interface ITarefa {
-  id: number;
-  title: string;
-  isCompleted: boolean;
-}
+import { ApiException } from "../../shared/services/api/ApiException";
+import { ITarefa, TarefasService } from "../../shared/services/api/tarefas/TarefasService";
+
 
 export const Dashboard = () => {
   const [lista, setLista] = useState<ITarefa[]>([]);
+
+  useEffect(() => {
+    TarefasService.getAll()
+      .then((result) => {
+        if (result instanceof ApiException) {
+          alert(result.message);
+        } else {
+          setLista(result);
+        }
+      });
+  }, []);
 
   const handleInputeKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback((e) => {
     if (e.key === "Enter") {
