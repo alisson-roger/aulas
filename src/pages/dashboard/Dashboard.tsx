@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react"
-
 import { ApiException } from "../../shared/services/api/ApiException";
 import { ITarefa, TarefasService } from "../../shared/services/api/tarefas/TarefasService";
-
 
 export const Dashboard = () => {
   const [lista, setLista] = useState<ITarefa[]>([]);
@@ -18,32 +16,33 @@ export const Dashboard = () => {
       });
   }, []);
 
-  const handleInputeKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback((e) => {
-    if (e.key === "Enter") {
+  const handleInputKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback((e) => {
+    if (e.key === 'Enter') {
       if (e.currentTarget.value.trim().length === 0) return;
 
-      const value = e.currentTarget.value
+      const value = e.currentTarget.value;
 
       e.currentTarget.value = '';
 
-      setLista((oldLista) => {
-        if (oldLista.some((listItem) => listItem.title === value)) return oldLista;
+      if (lista.some((listItem) => listItem.title === value)) return;
 
-        return [...oldLista, {
-          id: oldLista.length,
-          title: value,
-          isCompleted: false,
-        }]
-      });
+      TarefasService.create({ title: value, isCompleted: false })
+        .then((result) => {
+          if (result instanceof ApiException) {
+            alert(result.message);
+          } else {
+            setLista((oldLista) => [...oldLista, result]);
+          }
+        });
     }
-  }, [])
+  }, [lista]);
 
   return (
     <div>
       <p>Lista</p>
 
       <input
-        onKeyDown={handleInputeKeyDown}
+        onKeyDown={handleInputKeyDown}
       />
       <p>{lista.filter((listItem) => listItem.isCompleted).length}</p>
 
@@ -52,7 +51,7 @@ export const Dashboard = () => {
           return (
             <li key={listItem.id}>
               <input type='checkbox'
-              checked={listItem.isCompleted}
+                checked={listItem.isCompleted}
                 onChange={() => {
                   setLista(oldLista => {
                     return oldLista.map(oldListItem => {
@@ -70,7 +69,6 @@ export const Dashboard = () => {
           )
         })}
       </ul>
-
     </div>
   )
 }
